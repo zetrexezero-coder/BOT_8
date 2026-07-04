@@ -9,7 +9,7 @@ from telethon import TelegramClient
 
 StartTime = time.time()
 
-# enable logging
+# تفعيل التسجيل
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[logging.FileHandler("log.txt"), logging.StreamHandler()],
@@ -18,7 +18,7 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-# if version < 3.6, stop bot.
+# إذا كان الإصدار أقل من 3.6، توقف البوت.
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     LOGGER.error(
         "يجب أن يكون إصدار بايثون 3.6 على الأقل! العديد من الميزات تعتمد على هذا. البوت يتوقف الآن.",
@@ -62,7 +62,7 @@ if ENV:
     INFOPIC = bool(os.environ.get("INFOPIC", False))
     EVENT_LOGS = os.environ.get("EVENT_LOGS", None)
     WEBHOOK = bool(os.environ.get("WEBHOOK", False))
-    URL = os.environ.get("URL", "")  # Does not contain token
+    URL = os.environ.get("URL", "")  # لا يتضمن التوكن
     PORT = int(os.environ.get("PORT", 5000))
     CERT_PATH = os.environ.get("CERT_PATH")
     API_ID = os.environ.get("API_ID", None)
@@ -179,14 +179,14 @@ WOLVES = list(WOLVES)
 DEMONS = list(DEMONS)
 TIGERS = list(TIGERS)
 
-# Load at end to ensure all prev variables have been set
+# تحميل في النهاية للتأكد من أن جميع المتغيرات السابقة تم تعيينها
 from SaitamaRobot.modules.helper_funcs.handlers import (
     CustomCommandHandler,
     CustomMessageHandler,
     CustomRegexHandler,
 )
 
-# make sure the regex handler can take extra kwargs
+# تأكد من أن معالج Regex يمكنه قبول kwargs إضافي
 tg.RegexHandler = CustomRegexHandler
 tg.CommandHandler = CustomCommandHandler
 tg.MessageHandler = CustomMessageHandler
