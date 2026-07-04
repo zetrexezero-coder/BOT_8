@@ -1,4 +1,4 @@
-# أنشئ ملف config.py جديد أو أعد تسمية هذا الملف إلى config.py في نفس المجلد واستيراده، ثم مدد هذه الفئة.
+# أنشئ ملف config.py وأضف البيانات التالية
 import json
 import os
 
@@ -8,64 +8,59 @@ def get_user_list(config, key):
         return json.load(json_file)[key]
 
 
-# أنشئ ملف config.py جديد أو أعد تسمية هذا الملف إلى config.py في نفس المجلد واستيراده، ثم مدد هذه الفئة.
 class Config(object):
+    """إعدادات البوت"""
     LOGGER = True
-    # مطلوب
-    # سجل الدخول إلى https://my.telegram.org وملء هذه الفتحات بالتفاصيل المعطاة منه
-
-    API_ID = 123456  # قيمة عددية، لا تستخدم ""
+    
+    # البيانات المطلوبة من Telegram
+    API_ID = 123456  # من https://my.telegram.org
     API_HASH = "awoo"
-    TOKEN = "BOT_TOKEN"  # كانت هذه المتغير تسمى API_KEY لكنها الآن TOKEN، عدّل وفقاً لذلك.
-    OWNER_ID = 792109647  # إذا لم تكن تعرف، شغّل البوت واكتب /id في دردشتك الخاصة معه، أيضاً عدد صحيح
-    OWNER_USERNAME = "Sawada"
-    SUPPORT_CHAT = "OnePunchSupport"  # مجموعة الدعم الخاصة بك، لا تضف @
-    JOIN_LOGGER = (
-        -1001253661229
-    )  # يطبع أي مجموعة جديدة يتم إضافة البوت إليها، يطبع فقط الاسم والمعرف.
-    EVENT_LOGS = (
-        -1001190806654
-    )  # يطبع معلومات مثل gbans وترقيات sudo وحالات تفعيل/تعطيل الذكاء الاصطناعي التي قد تساعد في تصحيح الأخطاء
+    TOKEN = "BOT_TOKEN"  # توكن البوت من BotFather
+    OWNER_ID = 792109647  # معرفك على Telegram (اكتب !معرفي بالخاص للحصول عليه)
+    OWNER_USERNAME = "اسمك"
+    
+    # إعدادات الدعم والسجلات
+    SUPPORT_CHAT = "OnePunchSupport"
+    JOIN_LOGGER = -1001253661229
+    EVENT_LOGS = -1001190806654
 
-    # موصى به
-    SQLALCHEMY_DATABASE_URI = "something://somewhat:user@hosturl:port/databasename"  # مطلوب لأي وحدات قاعدة بيانات # أنها "URI" وليس "URL" حيث أن heroku وما شابه تقبلها فقط كـ URI
+    # إعدادات قاعدة البيانات
+    SQLALCHEMY_DATABASE_URI = "postgresql://user:password@localhost:5432/db_name"
+    
+    # إعدادات التحميل
     LOAD = []
     NO_LOAD = ["rss", "cleaner", "connection", "math"]
     WEBHOOK = False
     INFOPIC = True
     URL = None
-    SPAMWATCH_API = ""  # اذهب إلى support.spamwat.ch للحصول على المفتاح
+    
+    # إعدادات SpamWatch
+    SPAMWATCH_API = ""
     SPAMWATCH_SUPPORT_CHAT = "@SpamWatchSupport"
 
-    # اختياري
-    ##قائمة بالمعرفات - (وليس أسماء المستخدمين) للمستخدمين الذين لديهم وصول sudo للبوت.
+    # المستخدمون المتقدمون
     DRAGONS = get_user_list("elevated_users.json", "sudos")
-    ##قائمة بالمعرفات - (وليس أسماء المستخدمين) للمطورين الذين سيكون لديهم نفس الأذونات مثل المالك
     DEV_USERS = get_user_list("elevated_users.json", "devs")
-    ##قائمة بالمعرفات (وليس أسماء المستخدمين) للمستخدمين الذين يُسمح لهم بـ gban، لكن يمكن أيضاً حظرهم.
     DEMONS = get_user_list("elevated_users.json", "supports")
-    # قائمة بالمعرفات (وليس أسماء المستخدمين) للمستخدمين الذين لن يتم حظرهم/طردهم من قبل البوت.
     TIGERS = get_user_list("elevated_users.json", "tigers")
     WOLVES = get_user_list("elevated_users.json", "whitelists")
-    DONATION_LINK = None  # على سبيل المثال، paypal
+    
+    # إعدادات إضافية
+    DONATION_LINK = None
     CERT_PATH = None
     PORT = 5000
-    DEL_CMDS = True  # حذف الأوامر التي لا يمتلك المستخدمون إمكانية الوصول إليها، مثل حذف /ban إذا استخدمه غير مسؤول.
+    DEL_CMDS = True
     STRICT_GBAN = True
-    WORKERS = (
-        8  # عدد الخيوط الفرعية المراد استخدامها. عيّن عدد الخيوط التي يستخدمها معالجك
-    )
-    BAN_STICKER = ""  # معرف ملصق بطاقة الحظر من ماري، البوت سيرسل هذا الملصق قبل حظر أو طرد مستخدم من الدردشة.
-    ALLOW_EXCL = True  # السماح بأوامر ! بالإضافة إلى / (اترك هذا صحيح حتى تعمل القائمة السوداء)
-    CASH_API_KEY = (
-        "awoo"  # احصل على مفتاح API الخاص بك من https://www.alphavantage.co/support/#api-key
-    )
-    TIME_API_KEY = "awoo"  # احصل على مفتاح API الخاص بك من https://timezonedb.com/api
-    WALL_API = (
-        "awoo"  # للخلفيات، احصل على واحد من https://wall.alphacoders.com/api.php
-    )
-    AI_API_KEY = "awoo"  # للدردشة الآلية، احصل على واحد من https://coffeehouse.intellivoid.net/dashboard
-    BL_CHATS = []  # قائمة بالمجموعات التي تريد إدراجها في القائمة السوداء.
+    WORKERS = 8
+    BAN_STICKER = ""
+    ALLOW_EXCL = True  # السماح باستخدام ! بدلاً من /
+    
+    # مفاتيح API
+    CASH_API_KEY = "awoo"
+    TIME_API_KEY = "awoo"
+    WALL_API = "awoo"
+    AI_API_KEY = "awoo"
+    BL_CHATS = []
     SPAMMERS = None
 
 

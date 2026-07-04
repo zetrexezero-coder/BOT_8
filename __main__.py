@@ -20,8 +20,6 @@ from SaitamaRobot import (
     telethn,
     updater)
 
-# needed to dynamically load modules
-# NOTE: Module order is not guaranteed, specify that in the config file!
 from SaitamaRobot.modules import ALL_MODULES
 from SaitamaRobot.modules.helper_funcs.chat_status import is_user_admin
 from SaitamaRobot.modules.helper_funcs.misc import paginate_modules
@@ -49,7 +47,7 @@ def get_readable_time(seconds: int) -> str:
     count = 0
     ping_time = ""
     time_list = []
-    time_suffix_list = ["s", "m", "h", "days"]
+    time_suffix_list = ["ث", "د", "س", "أيام"]
 
     while count < 4:
         count += 1
@@ -73,36 +71,31 @@ def get_readable_time(seconds: int) -> str:
 PM_START_TEXT = """
 هلا {}، أنا {}!
 أنا بوت لإدارة القروبات بطابع الأنمي.
-صُنعت من محبي الأنمي لمحبي الأنمي، وأتخصص بإدارة مجتمعات الأنمي المميزة!
+صُنعت من محبي الأنمي لمحبي الأنمي!
 """
 
 HELP_STRINGS = """
 هلا! اسمي *{}*.
-أنا بطل للمتعة وأساعد المشرفين على إدارة قروباتهم بضربة واحدة! شاهد ما يلي لتتعرف على بعض \
-الأشياء التي يمكنني مساعدتك بها.
+أنا بوت قوي لإدارة القروبات! شاهد ما يلي لتتعرف على الأشياء التي يمكنني مساعدتك بها.
 
 الأوامر *الرئيسية* المتوفرة:
- • /help: يرسل لك هذه الرسالة بالخاص.
- • /help <اسم القسم>: يرسل لك بالخاص معلومات عن ذلك القسم.
- • /donate: معلومات عن كيفية التبرع!
- • /settings:
-   • بالخاص: يرسل لك إعداداتك لكل الأقسام المدعومة.
-   • بالقروب: يوجهك للخاص مع كل إعدادات ذلك القروب.
-
+ • !مساعدة: يرسل لك هذه الرسالة
+ • !مساعدة <اسم القسم>: معلومات عن قسم معين
+ • !تبرع: معلومات التبرع
+ • !إعدادات: إعداداتك وإعدادات القروب
 
 {}
-وأيضاً:
+المزيد من الخيارات متاحة!
 """.format(
     dispatcher.bot.first_name,
-    "" if not ALLOW_EXCL else "\nكل الأوامر يمكن استخدامها بـ / أو !.\n",
+    "\nجميع الأوامر تعمل بـ ! أو /\n" if not ALLOW_EXCL else "",
 )
 
 SAITAMA_IMG = "https://telegra.ph/file/46e6d9dfcb3eb9eae95d9.jpg"
 
-DONATE_STRING = """هلا، يسعدني أنك تريد التبرع!
- يمكنك دعم المشروع عبر [Paypal](ko-fi.com/sawada) أو بالتواصل مع @Sawada \
- الدعم لا يكون مادياً فقط! \
- من لا يستطيع تقديم دعم مادي، أهلاً به للمساهمة بتطوير البوت في @OnePunchDev."""
+DONATE_STRING = """شكراً على رغبتك في التبرع!
+يمكنك دعم المشروع عبر [Paypal](ko-fi.com/sawada)
+الدعم لا يكون مادياً فقط، بل يمكنك المساهمة في تطوير البوت!"""
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -122,12 +115,11 @@ for module_name in ALL_MODULES:
     if imported_module.__mod_name__.lower() not in IMPORTED:
         IMPORTED[imported_module.__mod_name__.lower()] = imported_module
     else:
-        raise Exception("لا يمكن أن يكون هناك قسمان بنفس الاسم! غيّر أحدهما")
+        raise Exception("لا يمكن أن يكون هناك قسمان بنفس الاسم!")
 
     if hasattr(imported_module, "__help__") and imported_module.__help__:
         HELPABLE[imported_module.__mod_name__.lower()] = imported_module
 
-    # Chats to migrate on chat_migrated events
     if hasattr(imported_module, "__migrate__"):
         MIGRATEABLE.append(imported_module)
 
@@ -150,10 +142,9 @@ for module_name in ALL_MODULES:
         USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
 
-# do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
-        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
+        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "مساعدة"))
     dispatcher.bot.send_message(
         chat_id=chat_id,
         text=text,
@@ -164,22 +155,14 @@ def send_help(chat_id, text, keyboard=None):
 
 
 @run_async
-def test(update: Update, context: CallbackContext):
-    # pprint(eval(str(update)))
-    # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
-    update.effective_message.reply_text("هذا الشخص عدّل رسالة")
-    print(update.effective_message)
-
-
-@run_async
 def start(update: Update, context: CallbackContext):
     args = context.args
     uptime = get_readable_time((time.time() - StartTime))
     if update.effective_chat.type == "private":
         if len(args) >= 1:
-            if args[0].lower() == "help":
+            if args[0].lower() == "مساعدة":
                 send_help(update.effective_chat.id, HELP_STRINGS)
-            elif args[0].lower().startswith("ghelp_"):
+            elif args[0].lower().startswith("مساعدة_"):
                 mod = args[0].lower().split("_", 1)[1]
                 if not HELPABLE.get(mod, False):
                     return
@@ -187,25 +170,9 @@ def start(update: Update, context: CallbackContext):
                     update.effective_chat.id,
                     HELPABLE[mod].__help__,
                     InlineKeyboardMarkup(
-                        [[InlineKeyboardButton(text="رجوع", callback_data="help_back")]],
+                        [[InlineKeyboardButton(text="رجوع", callback_data="رجوع_مساعدة")]],
                     ),
                 )
-            elif args[0].lower() == "markdownhelp":
-                IMPORTED["extras"].markdown_help_sender(update)
-            elif args[0].lower() == "disasters":
-                IMPORTED["disasters"].send_disasters(update)
-            elif args[0].lower().startswith("stngs_"):
-                match = re.match("stngs_(.*)", args[0].lower())
-                chat = dispatcher.bot.getChat(match.group(1))
-
-                if is_user_admin(chat, update.effective_user.id):
-                    send_settings(match.group(1), update.effective_user.id, False)
-                else:
-                    send_settings(match.group(1), update.effective_user.id, True)
-
-            elif args[0][1:].isdigit() and "rules" in IMPORTED:
-                IMPORTED["rules"].send_rules(update, args[0], from_pm=True)
-
         else:
             first_name = update.effective_user.first_name
             update.effective_message.reply_photo(
@@ -237,18 +204,8 @@ def start(update: Update, context: CallbackContext):
                         ],
                         [
                             InlineKeyboardButton(
-                                text="🧾 خطوات البداية",
-                                url="https://t.me/OnePunchUpdates/29",
-                            ),
-                            InlineKeyboardButton(
                                 text="🗄 الكود المصدري",
                                 url="https://github.com/AnimeKaizoku/SaitamaRobot",
-                            ),
-                        ],
-                        [
-                            InlineKeyboardButton(
-                                text="☠️ شبكة كايزوكو",
-                                url="https://t.me/Kaizoku/4",
                             ),
                         ],
                     ],
@@ -256,103 +213,59 @@ def start(update: Update, context: CallbackContext):
             )
     else:
         update.effective_message.reply_text(
-            "أنا مستيقظ فعلاً!\n<b>ما نمت من:</b> <code>{}</code>".format(
-                uptime,
-            ),
+            "أنا مستيقظ! ✨\n<b>مدة التشغيل:</b> <code>{}</code>".format(uptime),
             parse_mode=ParseMode.HTML,
         )
 
 
-# for test purposes
 def error_callback(update: Update, context: CallbackContext):
     error = context.error
     try:
         raise error
     except Unauthorized:
-        print("no nono1")
-        print(error)
-        # remove update.message.chat_id from conversation list
+        LOGGER.error("خطأ في المصادقة")
     except BadRequest:
-        print("no nono2")
-        print("تم رصد خطأ BadRequest")
-        print(error)
-
-        # handle malformed requests - read more below!
+        LOGGER.error("طلب خاطئ: %s", str(error))
     except TimedOut:
-        print("no nono3")
-        # handle slow connection problems
+        LOGGER.error("انتهت مهلة الانتظار")
     except NetworkError:
-        print("no nono4")
-        # handle other connection problems
+        LOGGER.error("خطأ في الاتصال")
     except ChatMigrated as err:
-        print("no nono5")
-        print(err)
-        # the chat_id of a group has changed, use e.new_chat_id instead
+        LOGGER.error("تم الهجرة: %s", str(err))
     except TelegramError:
-        print(error)
-        # handle all other telegram related errors
+        LOGGER.error("خطأ تيليجرام: %s", str(error))
 
 
 @run_async
 def help_button(update, context):
     query = update.callback_query
-    mod_match = re.match(r"help_module\((.+?)\)", query.data)
-    prev_match = re.match(r"help_prev\((.+?)\)", query.data)
-    next_match = re.match(r"help_next\((.+?)\)", query.data)
-    back_match = re.match(r"help_back", query.data)
-
-    print(query.message.chat.id)
+    mod_match = re.match(r"مساعدة_وحدة\((.+?)\)", query.data)
+    back_match = re.match(r"رجوع_مساعدة", query.data)
 
     try:
         if mod_match:
             module = mod_match.group(1)
-            text = (
-                "هذه هي المساعدة لقسم *{}*:\n".format(
-                    HELPABLE[module].__mod_name__,
-                )
-                + HELPABLE[module].__help__
-            )
+            text = "هذه هي المساعدة لـ *{}*:\n".format(
+                HELPABLE[module].__mod_name__,
+            ) + HELPABLE[module].__help__
             query.message.edit_text(
                 text=text,
                 parse_mode=ParseMode.MARKDOWN,
                 disable_web_page_preview=True,
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton(text="رجوع", callback_data="help_back")]],
+                    [[InlineKeyboardButton(text="رجوع", callback_data="رجوع_مساعدة")]],
                 ),
             )
-
-        elif prev_match:
-            curr_page = int(prev_match.group(1))
-            query.message.edit_text(
-                text=HELP_STRINGS,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(curr_page - 1, HELPABLE, "help"),
-                ),
-            )
-
-        elif next_match:
-            next_page = int(next_match.group(1))
-            query.message.edit_text(
-                text=HELP_STRINGS,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(next_page + 1, HELPABLE, "help"),
-                ),
-            )
-
         elif back_match:
             query.message.edit_text(
                 text=HELP_STRINGS,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(0, HELPABLE, "help"),
+                    paginate_modules(0, HELPABLE, "مساعدة"),
                 ),
             )
 
-        # ensure no spinny white circle
         context.bot.answer_callback_query(query.id)
-        # query.message.delete()
 
     except BadRequest:
         pass
@@ -360,21 +273,20 @@ def help_button(update, context):
 
 @run_async
 def get_help(update: Update, context: CallbackContext):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
 
-    # ONLY send help in PM
     if chat.type != chat.PRIVATE:
         if len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
             module = args[1].lower()
             update.effective_message.reply_text(
-                f"تواصل معي بالخاص للحصول على مساعدة {module.capitalize()}",
+                f"اكتب !مساعدة بالخاص للمزيد عن {module}",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
                             InlineKeyboardButton(
                                 text="المساعدة",
-                                url="t.me/{}?start=ghelp_{}".format(
+                                url="t.me/{}?start=مساعدة_{}".format(
                                     context.bot.username, module,
                                 ),
                             ),
@@ -384,13 +296,13 @@ def get_help(update: Update, context: CallbackContext):
             )
             return
         update.effective_message.reply_text(
-            "تواصل معي بالخاص للحصول على قائمة الأوامر المتاحة.",
+            "اكتب !مساعدة بالخاص للحصول على المزيد",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(
                             text="المساعدة",
-                            url="t.me/{}?start=help".format(context.bot.username),
+                            url="t.me/{}?start=مساعدة".format(context.bot.username),
                         ),
                     ],
                 ],
@@ -400,218 +312,35 @@ def get_help(update: Update, context: CallbackContext):
 
     elif len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
         module = args[1].lower()
-        text = (
-            "هذه هي المساعدة المتوفرة لقسم *{}*:\n".format(
-                HELPABLE[module].__mod_name__,
-            )
-            + HELPABLE[module].__help__
-        )
+        text = "المساعدة لـ *{}*:\n".format(
+            HELPABLE[module].__mod_name__,
+        ) + HELPABLE[module].__help__
         send_help(
             chat.id,
             text,
             InlineKeyboardMarkup(
-                [[InlineKeyboardButton(text="رجوع", callback_data="help_back")]],
+                [[InlineKeyboardButton(text="رجوع", callback_data="رجوع_مساعدة")]],
             ),
         )
-
     else:
         send_help(chat.id, HELP_STRINGS)
 
 
-def send_settings(chat_id, user_id, user=False):
-    if user:
-        if USER_SETTINGS:
-            settings = "\n\n".join(
-                "*{}*:\n{}".format(mod.__mod_name__, mod.__user_settings__(user_id))
-                for mod in USER_SETTINGS.values()
-            )
-            dispatcher.bot.send_message(
-                user_id,
-                "هذه هي إعداداتك الحالية:" + "\n\n" + settings,
-                parse_mode=ParseMode.MARKDOWN,
-            )
-
-        else:
-            dispatcher.bot.send_message(
-                user_id,
-                "يبدو أنه لا توجد إعدادات خاصة بالمستخدم متوفرة :'(",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-
-    else:
-        if CHAT_SETTINGS:
-            chat_name = dispatcher.bot.getChat(chat_id).title
-            dispatcher.bot.send_message(
-                user_id,
-                text="أي قسم تريد التحقق من إعدادات {} فيه؟".format(
-                    chat_name,
-                ),
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id),
-                ),
-            )
-        else:
-            dispatcher.bot.send_message(
-                user_id,
-                "يبدو أنه لا توجد إعدادات للقروب متوفرة :'(\nأرسل هذا "
-                "في قروب أنت مشرف فيه لمعرفة إعداداته الحالية!",
-                parse_mode=ParseMode.MARKDOWN,
-            )
-
-
-@run_async
-def settings_button(update: Update, context: CallbackContext):
-    query = update.callback_query
-    user = update.effective_user
-    bot = context.bot
-    mod_match = re.match(r"stngs_module\((.+?),(.+?)\)", query.data)
-    prev_match = re.match(r"stngs_prev\((.+?),(.+?)\)", query.data)
-    next_match = re.match(r"stngs_next\((.+?),(.+?)\)", query.data)
-    back_match = re.match(r"stngs_back\((.+?)\)", query.data)
-    try:
-        if mod_match:
-            chat_id = mod_match.group(1)
-            module = mod_match.group(2)
-            chat = bot.get_chat(chat_id)
-            text = "*{}* لديه الإعدادات التالية لقسم *{}*:\n\n".format(
-                escape_markdown(chat.title), CHAT_SETTINGS[module].__mod_name__,
-            ) + CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
-            query.message.reply_text(
-                text=text,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="رجوع",
-                                callback_data="stngs_back({})".format(chat_id),
-                            ),
-                        ],
-                    ],
-                ),
-            )
-
-        elif prev_match:
-            chat_id = prev_match.group(1)
-            curr_page = int(prev_match.group(2))
-            chat = bot.get_chat(chat_id)
-            query.message.reply_text(
-                "هلا! توجد إعدادات كثيرة لـ {} - تفضل واختر ما "
-                "يهمك.".format(chat.title),
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(
-                        curr_page - 1, CHAT_SETTINGS, "stngs", chat=chat_id,
-                    ),
-                ),
-            )
-
-        elif next_match:
-            chat_id = next_match.group(1)
-            next_page = int(next_match.group(2))
-            chat = bot.get_chat(chat_id)
-            query.message.reply_text(
-                "هلا! توجد إعدادات كثيرة لـ {} - تفضل واختر ما "
-                "يهمك.".format(chat.title),
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(
-                        next_page + 1, CHAT_SETTINGS, "stngs", chat=chat_id,
-                    ),
-                ),
-            )
-
-        elif back_match:
-            chat_id = back_match.group(1)
-            chat = bot.get_chat(chat_id)
-            query.message.reply_text(
-                text="هلا! توجد إعدادات كثيرة لـ {} - تفضل واختر ما "
-                "يهمك.".format(escape_markdown(chat.title)),
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id),
-                ),
-            )
-
-        # ensure no spinny white circle
-        bot.answer_callback_query(query.id)
-        query.message.delete()
-    except BadRequest as excp:
-        if excp.message not in [
-            "الرسالة لم تتغير",
-            "Query_id_invalid",
-            "لا يمكن حذف الرسالة",
-        ]:
-            LOGGER.exception("خطأ في أزرار الإعدادات. %s", str(query.data))
-
-
-@run_async
-def get_settings(update: Update, context: CallbackContext):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    msg = update.effective_message  # type: Optional[Message]
-
-    # ONLY send settings in PM
-    if chat.type != chat.PRIVATE:
-        if is_user_admin(chat, user.id):
-            text = "اضغط هنا للحصول على إعدادات هذا القروب، وإعداداتك أيضاً."
-            msg.reply_text(
-                text,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="الإعدادات",
-                                url="t.me/{}?start=stngs_{}".format(
-                                    context.bot.username, chat.id,
-                                ),
-                            ),
-                        ],
-                    ],
-                ),
-            )
-        else:
-            text = "اضغط هنا للتحقق من إعداداتك."
-
-    else:
-        send_settings(chat.id, user.id, True)
-
-
 @run_async
 def donate(update: Update, context: CallbackContext):
-    user = update.effective_message.from_user
-    chat = update.effective_chat  # type: Optional[Chat]
-    bot = context.bot
+    chat = update.effective_chat
     if chat.type == "private":
         update.effective_message.reply_text(
             DONATE_STRING, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True,
         )
-
-        if OWNER_ID != 254318997 and DONATION_LINK:
-            update.effective_message.reply_text(
-                "يمكنك أيضاً التبرع للشخص الذي يشغّلني حالياً "
-                "[هنا]({})".format(DONATION_LINK),
-                parse_mode=ParseMode.MARKDOWN,
-            )
-
     else:
-        try:
-            bot.send_message(
-                user.id,
-                DONATE_STRING,
-                parse_mode=ParseMode.MARKDOWN,
-                disable_web_page_preview=True,
-            )
-
-            update.effective_message.reply_text(
-                "أرسلت لك بالخاص معلومات التبرع لمنشئي!",
-            )
-        except Unauthorized:
-            update.effective_message.reply_text(
-                "تواصل معي بالخاص أولاً للحصول على معلومات التبرع.",
-            )
+        update.effective_message.reply_text(
+            "شكراً على اهتمامك! 💝",
+        )
 
 
 def migrate_chats(update: Update, context: CallbackContext):
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
         new_chat = msg.migrate_to_chat_id
@@ -621,7 +350,7 @@ def migrate_chats(update: Update, context: CallbackContext):
     else:
         return
 
-    LOGGER.info("الانتقال من %s، إلى %s", str(old_chat), str(new_chat))
+    LOGGER.info("الانتقال من %s إلى %s", str(old_chat), str(new_chat))
     for mod in MIGRATEABLE:
         mod.__migrate__(old_chat, new_chat)
 
@@ -633,48 +362,34 @@ def main():
 
     if SUPPORT_CHAT is not None and isinstance(SUPPORT_CHAT, str):
         try:
-            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "أنا الآن متصل!")
+            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "البوت متصل الآن! ✨")
         except Unauthorized:
-            LOGGER.warning(
-                "البوت لا يستطيع إرسال رسالة لقروب الدعم، تحقق من ذلك!",
-            )
+            LOGGER.warning("البوت لا يستطيع إرسال رسالة لقروب الدعم!")
         except BadRequest as e:
             LOGGER.warning(e.message)
 
-    test_handler = CommandHandler("test", test)
-    start_handler = CommandHandler("start", start)
-
-    help_handler = CommandHandler("help", get_help)
-    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_.*")
-
-    settings_handler = CommandHandler("settings", get_settings)
-    settings_callback_handler = CallbackQueryHandler(settings_button, pattern=r"stngs_")
-
-    donate_handler = CommandHandler("donate", donate)
+    start_handler = CommandHandler(["ابدأ", "start"], start)
+    help_handler = CommandHandler(["مساعدة", "help"], get_help)
+    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"مساعدة.*")
+    donate_handler = CommandHandler(["تبرع", "donate"], donate)
     migrate_handler = MessageHandler(Filters.status_update.migrate, migrate_chats)
 
-    # dispatcher.add_handler(test_handler)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
-    dispatcher.add_handler(settings_handler)
-    dispatcher.add_handler(help_callback_handler)
-    dispatcher.add_handler(settings_callback_handler)
-    dispatcher.add_handler(migrate_handler)
     dispatcher.add_handler(donate_handler)
-
+    dispatcher.add_handler(help_callback_handler)
+    dispatcher.add_handler(migrate_handler)
     dispatcher.add_error_handler(error_callback)
 
     if WEBHOOK:
-        LOGGER.info("يتم استخدام الـ webhooks.")
+        LOGGER.info("يتم استخدام webhooks")
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-
         if CERT_PATH:
             updater.bot.set_webhook(url=URL + TOKEN, certificate=open(CERT_PATH, "rb"))
         else:
             updater.bot.set_webhook(url=URL + TOKEN)
-
     else:
-        LOGGER.info("يتم استخدام long polling.")
+        LOGGER.info("يتم استخدام long polling")
         updater.start_polling(timeout=15, read_latency=4, clean=True)
 
     if len(argv) not in (1, 3, 4):

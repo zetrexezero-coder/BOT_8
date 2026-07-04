@@ -18,10 +18,10 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-# إذا كان الإصدار أقل من 3.6، توقف البوت.
+# إذا كان الإصدار أقل من 3.6، توقف البوت
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     LOGGER.error(
-        "يجب أن يكون إصدار بايثون 3.6 على الأقل! العديد من الميزات تعتمد على هذا. البوت يتوقف الآن.",
+        "يجب أن يكون إصدار بايثون 3.6 على الأقل! البوت يتوقف الآن.",
     )
     quit(1)
 
@@ -42,12 +42,12 @@ if ENV:
         DRAGONS = set(int(x) for x in os.environ.get("DRAGONS", "").split())
         DEV_USERS = set(int(x) for x in os.environ.get("DEV_USERS", "").split())
     except ValueError:
-        raise Exception("قائمة مستخدمي sudo أو dev لا تحتوي على أرقام صالحة.")
+        raise Exception("قائمة المطورين لا تحتوي على أرقام صالحة.")
 
     try:
         DEMONS = set(int(x) for x in os.environ.get("DEMONS", "").split())
     except ValueError:
-        raise Exception("قائمة مستخدمي الدعم لا تحتوي على أرقام صالحة.")
+        raise Exception("قائمة الدعم لا تحتوي على أرقام صالحة.")
 
     try:
         WOLVES = set(int(x) for x in os.environ.get("WOLVES", "").split())
@@ -57,12 +57,12 @@ if ENV:
     try:
         TIGERS = set(int(x) for x in os.environ.get("TIGERS", "").split())
     except ValueError:
-        raise Exception("قائمة مستخدمي التايجر لا تحتوي على أرقام صالحة.")
+        raise Exception("قائمة التايجر ل�� تحتوي على أرقام صالحة.")
 
     INFOPIC = bool(os.environ.get("INFOPIC", False))
     EVENT_LOGS = os.environ.get("EVENT_LOGS", None)
     WEBHOOK = bool(os.environ.get("WEBHOOK", False))
-    URL = os.environ.get("URL", "")  # لا يتضمن التوكن
+    URL = os.environ.get("URL", "")
     PORT = int(os.environ.get("PORT", 5000))
     CERT_PATH = os.environ.get("CERT_PATH")
     API_ID = os.environ.get("API_ID", None)
@@ -75,7 +75,7 @@ if ENV:
     STRICT_GBAN = bool(os.environ.get("STRICT_GBAN", False))
     WORKERS = int(os.environ.get("WORKERS", 8))
     BAN_STICKER = os.environ.get("BAN_STICKER", "CAADAgADOwADPPEcAXkko5EB3YGYAg")
-    ALLOW_EXCL = os.environ.get("ALLOW_EXCL", False)
+    ALLOW_EXCL = os.environ.get("ALLOW_EXCL", True)
     CASH_API_KEY = os.environ.get("CASH_API_KEY", None)
     TIME_API_KEY = os.environ.get("TIME_API_KEY", None)
     AI_API_KEY = os.environ.get("AI_API_KEY", None)
@@ -95,36 +95,15 @@ else:
     from SaitamaRobot.config import Development as Config
 
     TOKEN = Config.TOKEN
-
-    try:
-        OWNER_ID = int(Config.OWNER_ID)
-    except ValueError:
-        raise Exception("متغير OWNER_ID غير صحيح، يجب أن يكون رقماً صالحاً.")
-
+    OWNER_ID = int(Config.OWNER_ID)
     JOIN_LOGGER = Config.JOIN_LOGGER
     OWNER_USERNAME = Config.OWNER_USERNAME
     ALLOW_CHATS = Config.ALLOW_CHATS
-    try:
-        DRAGONS = set(int(x) for x in Config.DRAGONS or [])
-        DEV_USERS = set(int(x) for x in Config.DEV_USERS or [])
-    except ValueError:
-        raise Exception("قائمة مستخدمي sudo أو dev لا تحتوي على أرقام صالحة.")
-
-    try:
-        DEMONS = set(int(x) for x in Config.DEMONS or [])
-    except ValueError:
-        raise Exception("قائمة مستخدمي الدعم لا تحتوي على أرقام صالحة.")
-
-    try:
-        WOLVES = set(int(x) for x in Config.WOLVES or [])
-    except ValueError:
-        raise Exception("قائمة المستخدمين المسموح لهم لا تحتوي على أرقام صالحة.")
-
-    try:
-        TIGERS = set(int(x) for x in Config.TIGERS or [])
-    except ValueError:
-        raise Exception("قائمة مستخدمي التايجر لا تحتوي على أرقام صالحة.")
-
+    DRAGONS = set(int(x) for x in Config.DRAGONS or [])
+    DEV_USERS = set(int(x) for x in Config.DEV_USERS or [])
+    DEMONS = set(int(x) for x in Config.DEMONS or [])
+    WOLVES = set(int(x) for x in Config.WOLVES or [])
+    TIGERS = set(int(x) for x in Config.TIGERS or [])
     EVENT_LOGS = Config.EVENT_LOGS
     WEBHOOK = Config.WEBHOOK
     URL = Config.URL
@@ -132,7 +111,6 @@ else:
     CERT_PATH = Config.CERT_PATH
     API_ID = Config.API_ID
     API_HASH = Config.API_HASH
-
     DB_URI = Config.SQLALCHEMY_DATABASE_URI
     DONATION_LINK = Config.DONATION_LINK
     LOAD = Config.LOAD
@@ -150,18 +128,14 @@ else:
     SPAMWATCH_SUPPORT_CHAT = Config.SPAMWATCH_SUPPORT_CHAT
     SPAMWATCH_API = Config.SPAMWATCH_API
     INFOPIC = Config.INFOPIC
-
-    try:
-        BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
-    except ValueError:
-        raise Exception("قائمة القروبات المحظورة لا تحتوي على أرقام صالحة.")
+    BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
 
 DRAGONS.add(OWNER_ID)
 DEV_USERS.add(OWNER_ID)
 
 if not SPAMWATCH_API:
     sw = None
-    LOGGER.warning("مفتاح SpamWatch API مفقود! تحقق من إعداداتك.")
+    LOGGER.warning("مفتاح SpamWatch API مفقود!")
 else:
     try:
         sw = spamwatch.Client(SPAMWATCH_API)
@@ -179,14 +153,12 @@ WOLVES = list(WOLVES)
 DEMONS = list(DEMONS)
 TIGERS = list(TIGERS)
 
-# تحميل في النهاية للتأكد من أن جميع المتغيرات السابقة تم تعيينها
 from SaitamaRobot.modules.helper_funcs.handlers import (
     CustomCommandHandler,
     CustomMessageHandler,
     CustomRegexHandler,
 )
 
-# تأكد من أن معالج Regex يمكنه قبول kwargs إضافي
 tg.RegexHandler = CustomRegexHandler
 tg.CommandHandler = CustomCommandHandler
 tg.MessageHandler = CustomMessageHandler
